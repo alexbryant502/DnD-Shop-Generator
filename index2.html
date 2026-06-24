@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settlement Shops</title>
+<style>
+  :root {
+    --bg: #1c1410;
+    --surface: #2e2319;
+    --surface-raised: #3a2c1f;
+    --ink: #e8dcc4;
+    --ink-dim: #b8a988;
+    --amber: #c2832f;
+    --amber-bright: #e0a04a;
+    --sage: #6b8a6d;
+    --rust-red: #9a4a3f;
+    --line: #4a3a28;
+    --shadow: rgba(0,0,0,0.5);
+
+    --font-display: "Old Standard TT", "Iowan Old Style", Georgia, serif;
+    --font-body: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --font-mono: "Courier New", Courier, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 50% -10%, rgba(194,131,47,0.08), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+    color: var(--ink);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+  }
+
+  .settlement-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .settlement-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 4px;
+  }
+
+  .settlement-name {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--amber-bright);
+    letter-spacing: 0.02em;
+  }
+
+  .settlement-campaign {
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    margin: 4px 0 0;
+    font-style: italic;
+  }
+
+  /* ---------- Nav ---------- */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .nav-btn {
+    background: var(--surface-raised);
+    border: 2px solid var(--line);
+    color: var(--amber-bright);
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .nav-btn:hover { background: var(--amber); border-color: var(--amber); color: var(--bg); }
+  .nav-btn:active { transform: scale(0.95); }
+  .nav-btn:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 2px; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .shop-tally {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+    min-width: 70px;
+    text-align: center;
+  }
+
+  /* ---------- Shop card ---------- */
+  .shop-card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px var(--shadow);
+    overflow: hidden;
+  }
+
+  .sign-panel {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%),
+      var(--surface-raised);
+    border-bottom: 3px solid var(--line);
+    padding: 28px 24px 20px;
+    text-align: center;
+    position: relative;
+  }
+
+  .sign-panel::before, .sign-panel::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+  }
+  .sign-panel::before { left: 16px; }
+  .sign-panel::after { right: 16px; }
+
+  .shop-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px;
+    color: var(--amber-bright);
+  }
+  .shop-icon svg { width: 100%; height: 100%; }
+
+  .shop-type-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin: 0 0 6px;
+  }
+
+  .shop-name {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+    line-height: 1.2;
+  }
+
+  .shop-rating {
+    display: inline-flex;
+    gap: 2px;
+    margin-bottom: 4px;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .star {
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    color: var(--line);
+  }
+  .star .star-fill {
+    position: absolute;
+    top: 0; left: 0;
+    overflow: hidden;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+
+  .npc-note {
+    background: rgba(0,0,0,0.18);
+    border-top: 1px dashed var(--line);
+    padding: 14px 24px;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .npc-note strong {
+    font-style: normal;
+    color: var(--ink);
+  }
+
+  /* ---------- Haggle ---------- */
+  .haggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .haggle-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .haggle-input {
+    width: 56px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    text-align: center;
+    border-radius: 4px;
+    padding: 5px 0;
+  }
+  .haggle-input:focus-visible { outline: 2px solid var(--amber-bright); }
+  .haggle-discount {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--amber-bright);
+    min-width: 60px;
+  }
+
+  /* ---------- Tables ---------- */
+  .section-block { padding: 6px 0 4px; }
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sage);
+    padding: 14px 24px 6px;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  table.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .item-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 4px 24px;
+    font-weight: 400;
+  }
+  .item-table th.num, .item-table td.num { text-align: right; padding-right: 24px; }
+  .item-table td { padding: 7px 24px; border-top: 1px solid rgba(74,58,40,0.5); }
+  .item-table tr:first-of-type td { border-top: none; }
+
+  .item-name { color: var(--ink); }
+  .item-spell {
+    display: block;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--sage);
+    margin-top: 2px;
+    font-family: var(--font-body);
+  }
+  .item-rarity {
+    font-size: 0.74rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .rarity-common { color: var(--ink-dim); }
+  .rarity-uncommon { color: var(--sage); }
+  .rarity-rare { color: var(--amber-bright); }
+  .rarity-very-rare { color: #c97a4a; }
+  .rarity-legendary { color: var(--rust-red); font-weight: 700; }
+
+  .cost-base { color: var(--ink-dim); font-family: var(--font-mono); font-size: 0.84rem; }
+  .cost-final { color: var(--amber-bright); font-family: var(--font-mono); font-weight: 700; }
+
+  .empty-row td { color: var(--ink-dim); font-style: italic; text-align: center; }
+
+  /* ---------- Status / error states ---------- */
+  .status-panel {
+    max-width: 480px;
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--ink-dim);
+  }
+  .status-panel.error { color: #d98a7a; }
+  .reload-btn {
+    margin-top: 16px;
+    background: var(--amber);
+    border: none;
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .reload-btn:hover { background: var(--amber-bright); }
+
+  .footer-note {
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--line);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 480px) {
+    .settlement-name { font-size: 1.7rem; }
+    .shop-name { font-size: 1.35rem; }
+    .item-table th, .item-table td { padding: 7px 14px; }
+    .section-title { padding: 14px 14px 6px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="settlement-header">
+    <p class="settlement-eyebrow" id="campaign-label">&nbsp;</p>
+    <h1 class="settlement-name" id="settlement-label">Loading settlement&hellip;</h1>
+  </div>
+
+  <div id="app-root">
+    <div class="status-panel" id="status-panel">
+      <p>Fetching shop data&hellip;</p>
+    </div>
+  </div>
+
+  <p class="footer-note" id="generated-note"></p>
+
+<script>
+  // ======= CONFIGURE THIS =======
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxtnbEKDa1i054hnyZJ_lTi0Xa_J8zWIC8NzmtWzvRzqZolY8ehjLdDV5fDwpr8l_1-NQ/exec";
+  // ===============================
+
+  let shopsData = [];
+  let currentIndex = 0;
+  // haggleRolls[shopIndex] = last entered roll (persists while page is open)
+  const haggleRolls = {};
+
+  const ICONS = {
+    "Adventuring": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 50 L32 12 L50 50" /><path d="M22 50 L32 28 L42 50" /><circle cx="32" cy="20" r="3" fill="currentColor"/></svg>`,
+    "Arcanist": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 8 L38 26 L56 32 L38 38 L32 56 L26 38 L8 32 L26 26 Z"/></svg>`,
+    "Blacksmith": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 44 L26 28 L34 36 L18 52 Z"/><path d="M30 32 L40 22 L52 14 L54 16 L46 28 L36 38" /><circle cx="50" cy="16" r="2.5" fill="currentColor"/></svg>`,
+    "Curiosities": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="18"/><path d="M32 22 L32 32 L40 38"/><circle cx="32" cy="32" r="2" fill="currentColor"/></svg>`,
+    "General": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 22 L32 10 L54 22 L54 50 L10 50 Z"/><path d="M10 22 L54 22"/><path d="M24 50 L24 34 L40 34 L40 50"/></svg>`,
+    "Apothecary": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 10 L40 10 L40 22 L48 38 L48 52 L16 52 L16 38 Z"/><path d="M24 10 L24 22 L16 38 L48 38"/></svg>`,
+    "Hunting": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12 L54 56"/><path d="M40 8 L56 8 L56 24"/><path d="M10 56 L10 40 L18 32"/></svg>`,
+    "Black Market": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 28 L16 50 L48 50 L48 28"/><path d="M12 28 L52 28 L46 14 L18 14 Z"/><path d="M26 28 L26 14 M38 28 L38 14"/></svg>`,
+    "Tinkerer": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="26" r="8"/><path d="M31 31 L52 52"/><path d="M46 46 L52 40 L58 46 L52 52 Z" fill="currentColor" stroke="none"/></svg>`,
+    "Stable": `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 30 L32 12 L56 30"/><path d="M14 30 L14 54 L50 54 L50 30"/><path d="M26 54 L26 38 L38 38 L38 54"/></svg>`,
+  };
+  const DEFAULT_ICON = ICONS["Curiosities"];
+
+  function rarityClass(rarity) {
+    const r = (rarity || "").toLowerCase().replace(/\s+/g, "-");
+    return "rarity-" + (r || "common");
+  }
+
+  function computeDiscountPercent(roll) {
+    if (!roll || roll < 11) return 0;
+    if (roll >= 30) return 50;
+    return roll;
+  }
+
+  function renderRatingStars(rating10) {
+    // shopRating is out of 10; display as a 5-star scale with half-star precision.
+    const ratingOf5 = Math.max(0, Math.min(5, (Number(rating10) || 0) / 2));
+    const totalStars = 5;
+    let html = "";
+    for (let i = 1; i <= totalStars; i++) {
+      const fillAmount = Math.max(0, Math.min(1, ratingOf5 - (i - 1))); // 0, 0.5, or 1
+      const pct = Math.round(fillAmount * 100);
+      html += `<span class="star">&#9733;<span class="star-fill" style="width:${pct}%">&#9733;</span></span>`;
+    }
+    return html;
+  }
+
+  function buildItemRows(items, discountPercent) {
+    if (!items || !items.length) {
+      return `<tr class="empty-row"><td colspan="4">No stock</td></tr>`;
+    }
+    return items.map(it => {
+      const base = Number(it.baseCost) || 0;
+      const final = Math.round(base * (1 - discountPercent / 100));
+      const spellLine = it.spell
+        ? `<span class="item-spell">${escapeHtml(it.spell)}</span>`
+        : '';
+      return `<tr>
+        <td class="item-name">${escapeHtml(it.item)}${spellLine}</td>
+        <td><span class="item-rarity ${rarityClass(it.rarity)}">${escapeHtml(it.rarity)}</span></td>
+        <td class="num cost-base">${base.toLocaleString()}</td>
+        <td class="num cost-final">${final.toLocaleString()}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function renderShop(index) {
+    const shop = shopsData[index];
+    const root = document.getElementById("app-root");
+    if (!shop) {
+      root.innerHTML = `<div class="status-panel"><p>No shop data at this position.</p></div>`;
+      return;
+    }
+
+    const roll = haggleRolls[index] ?? "";
+    const discount = computeDiscountPercent(Number(roll));
+    const icon = ICONS[shop.shopType] || DEFAULT_ICON;
+
+    root.innerHTML = `
+      <div class="shop-card">
+        <div class="sign-panel">
+          <div class="shop-icon">${icon}</div>
+          <p class="shop-type-eyebrow">${escapeHtml(shop.shopType)}</p>
+          <h2 class="shop-name">${escapeHtml(shop.shopName)}</h2>
+          <div class="shop-rating">${renderRatingStars(shop.shopRating)}</div>
+        </div>
+        <div class="npc-note">
+          <strong>${escapeHtml(shop.npcName)}</strong> &mdash; ${escapeHtml(shop.npcDescription)}
+        </div>
+        <div class="haggle-row">
+          <label class="haggle-label" for="haggle-input">Haggle roll</label>
+          <input type="number" min="1" max="40" class="haggle-input" id="haggle-input" value="${roll}" />
+          <span class="haggle-discount" id="haggle-discount">${discount}% off</span>
+        </div>
+        <div class="section-block">
+          <p class="section-title">Magic Items</p>
+          <table class="item-table">
+            <thead><tr><th>Item</th><th>Rarity</th><th class="num">Base</th><th class="num">Final</th></tr></thead>
+            <tbody id="magic-body">${buildItemRows(shop.magicItems, discount)}</tbody>
+          </table>
+        </div>
+        <div class="section-block">
+          <p class="section-title">Consumables</p>
+          <table class="item-table">
+            <thead><tr><th>Item</th><th>Rarity</th><th class="num">Base</th><th class="num">Final</th></tr></thead>
+            <tbody id="consumables-body">${buildItemRows(shop.consumables, discount)}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("haggle-input").addEventListener("input", (e) => {
+      const val = Number(e.target.value);
+      haggleRolls[index] = e.target.value === "" ? "" : val;
+      const newDiscount = computeDiscountPercent(val);
+      document.getElementById("haggle-discount").textContent = `${newDiscount}% off`;
+      document.getElementById("magic-body").innerHTML = buildItemRows(shop.magicItems, newDiscount);
+      document.getElementById("consumables-body").innerHTML = buildItemRows(shop.consumables, newDiscount);
+    });
+  }
+
+  function renderNav() {
+    let nav = document.getElementById("nav-row");
+    if (!nav) {
+      nav = document.createElement("div");
+      nav.className = "nav-row";
+      nav.id = "nav-row";
+      document.getElementById("app-root").before(nav);
+    }
+    nav.innerHTML = `
+      <button class="nav-btn" id="prev-btn" aria-label="Previous shop">&#8592;</button>
+      <span class="shop-tally">${currentIndex + 1} / ${shopsData.length}</span>
+      <button class="nav-btn" id="next-btn" aria-label="Next shop">&#8594;</button>
+    `;
+    document.getElementById("prev-btn").disabled = currentIndex === 0;
+    document.getElementById("next-btn").disabled = currentIndex === shopsData.length - 1;
+    document.getElementById("prev-btn").addEventListener("click", () => {
+      if (currentIndex > 0) { currentIndex--; renderShop(currentIndex); renderNav(); }
+    });
+    document.getElementById("next-btn").addEventListener("click", () => {
+      if (currentIndex < shopsData.length - 1) { currentIndex++; renderShop(currentIndex); renderNav(); }
+    });
+  }
+
+  function showError(message) {
+    document.getElementById("app-root").innerHTML = `
+      <div class="status-panel error">
+        <p>${escapeHtml(message)}</p>
+        <button class="reload-btn" onclick="location.reload()">Try again</button>
+      </div>
+    `;
+  }
+
+  async function loadShops() {
+    if (!WEB_APP_URL || WEB_APP_URL.indexOf("PASTE_YOUR") === 0) {
+      showError("No web app URL configured yet. Open this file and paste your Apps Script Web App URL into the WEB_APP_URL constant near the top of the <script> section.");
+      return;
+    }
+    try {
+      const res = await fetch(WEB_APP_URL, { cache: "no-store" });
+      const data = await res.json();
+
+      if (!data.ok) {
+        showError(data.error || "The sheet returned an error.");
+        return;
+      }
+
+      document.getElementById("campaign-label").textContent = data.campaign || "";
+      document.getElementById("settlement-label").textContent = data.settlement || "Settlement";
+
+      if (data.generatedAt) {
+        const d = new Date(data.generatedAt);
+        document.getElementById("generated-note").textContent =
+          "Inventory pulled " + d.toLocaleString();
+      }
+
+      shopsData = data.shops || [];
+      if (!shopsData.length) {
+        showError("No shops found for the current campaign and settlement. Run Generate Shops in the sheet first.");
+        return;
+      }
+
+      currentIndex = 0;
+      renderNav();
+      renderShop(currentIndex);
+
+    } catch (err) {
+      showError("Couldn't reach the shop data. Check your connection, or that the Apps Script Web App is deployed and the URL is correct.");
+    }
+  }
+
+  loadShops();
+</script>
+</body>
+</html>
